@@ -1,4 +1,6 @@
 import flet as ft
+from flet import app
+
 from alert import AlertManager
 from deposito_strumenti import DepositoStrumenti
 
@@ -34,9 +36,19 @@ def main(page: ft.Page):
 
     # ListView per mostrare la lista di strumenti aggiornata
     lista_strumenti = ft.ListView(expand=True, spacing=5, padding=10, auto_scroll=True)
+    myText = ft.Text(value = "Aggiungi Nuovo Strumento",
+        style=ft.TextThemeStyle.HEADLINE_MEDIUM,
+        weight=ft.FontWeight.BOLD)
 
     # Tutti i TextField per le info necessarie per aggiungere un nuovo strumento (tipo, marca, anno, contatore posti)
-    # TODO
+
+    input_tipo_txt = ft.TextField(label= "tipo strumento" ,
+                                  width=400  )
+    input_marca_txt = ft.TextField(label = "marca strumento",
+                                   width = 400)
+    input_anno_txt = ft.TextField(label = "anno acquisto",
+                                  keyboard_type=ft.KeyboardType.NUMBER,
+                                  width = 400)
 
     # --- FUNZIONI APP ---
     def aggiorna_lista_strumenti():
@@ -58,14 +70,27 @@ def main(page: ft.Page):
         page.update()
 
     # Handlers per la gestione dei pulsanti utili all'inserimento di un nuovo strumento
-    # TODO
+    my_button_responsabile = ft.Button()
 
     # --- EVENTI ---
     toggle_cambia_tema = ft.Switch(label="Tema scuro", value=True, on_change=cambia_tema)
     pulsante_conferma_responsabile = ft.ElevatedButton("Conferma", on_click=conferma_responsabile)
 
     # Pulsanti per la gestione dell'inserimento di un nuovo strumento
-    # TODO
+
+    def aggiungi_nuovo_strumento(e):
+        tipo = input_tipo_txt.value
+        marca = input_marca_txt.value
+        anno = input_anno_txt.value
+        if tipo and marca and anno:
+            input_tipo_txt.value = ""
+            input_marca_txt.value = ""
+            input_anno_txt.value = ""
+            aggiorna_lista_strumenti()
+        else:
+            alert.show_alert("❌ Compila tutti i campi dello strumento!")
+        page.update()
+    pulsante_aggiungi_strumento = ft.ElevatedButton("Salva Strumento", on_click=aggiungi_nuovo_strumento)
 
     # --- LAYOUT ---
     page.add(
@@ -83,7 +108,16 @@ def main(page: ft.Page):
                alignment=ft.MainAxisAlignment.CENTER),
 
         # Sezione 3
-        # TODO
+        ft.Column(
+            controls = [
+                myText,
+                input_tipo_txt,
+                input_marca_txt,
+                input_anno_txt,
+                pulsante_aggiungi_strumento],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=10
+        ),
 
         # Sezione 4
         ft.Divider(),
@@ -91,5 +125,6 @@ def main(page: ft.Page):
         lista_strumenti,
     )
     aggiorna_lista_strumenti()
+
 
 ft.app(target=main)
