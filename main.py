@@ -49,12 +49,33 @@ def main(page: ft.Page):
     input_anno_txt = ft.TextField(label = "anno acquisto",
                                   keyboard_type=ft.KeyboardType.NUMBER,
                                   width = 400)
+    input_prezzo_txt = ft.TextField(value = deposito.strumenti[valore])
 
     # --- FUNZIONI APP ---
     def aggiorna_lista_strumenti():
         lista_strumenti.controls.clear()
         for strumento in deposito.strumenti_ordinati_per_marca():
             stato = "✅" if strumento.disponibile else "⛔"
+            input_prezzo_txt = ft.TextField(value=str(strumento.valore),text_align=ft.TextAlign.CENTER, width=80)
+            def diminuisci_prezzo(e, s=strumento, t = input_prezzo_txt):
+                try:
+                    prezzo = float(t.value)
+                    if prezzo > 0:
+                        s.valore = prezzo -1
+                        t.value = str(s.valore)
+                        page.update()
+                except ValueError:
+                    pass
+
+            def aumenta_prezzo(e,s=strumento,t = input_prezzo_txt):
+                try:
+                    prezzo = float(t.value)
+                    s.valore = prezzo + 1
+                    t.value = str(s.valore)
+                    page.update()
+                except ValueError:
+                    pass
+
             lista_strumenti.controls.append(ft.Text(f"{stato} {strumento}"))
         page.update()
 
@@ -86,10 +107,13 @@ def main(page: ft.Page):
             input_tipo_txt.value = ""
             input_marca_txt.value = ""
             input_anno_txt.value = ""
+            input_prezzo_txt.value = 0
             aggiorna_lista_strumenti()
         else:
             alert.show_alert("❌ Compila tutti i campi dello strumento!")
         page.update()
+
+
     pulsante_aggiungi_strumento = ft.ElevatedButton("Salva Strumento", on_click=aggiungi_nuovo_strumento)
 
     # --- LAYOUT ---
@@ -114,6 +138,7 @@ def main(page: ft.Page):
                 input_tipo_txt,
                 input_marca_txt,
                 input_anno_txt,
+                inpput_prezzo_txt,
                 pulsante_aggiungi_strumento],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=10
@@ -127,4 +152,4 @@ def main(page: ft.Page):
     aggiorna_lista_strumenti()
 
 
-ft.app(target=main)
+ft.run(main)
