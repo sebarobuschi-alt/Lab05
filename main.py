@@ -114,7 +114,8 @@ def main(page: ft.Page):
         tipo = input_tipo_txt.value
         marca = input_marca_txt.value
         anno = input_anno_txt.value
-        if tipo and marca and anno:
+        prezzo = input_prezzo_txt.value
+        if tipo and marca and anno and prezzo:
             input_tipo_txt.value = ""
             input_marca_txt.value = ""
             input_anno_txt.value = ""
@@ -122,6 +123,9 @@ def main(page: ft.Page):
             aggiorna_lista_strumenti()
         else:
             alert.show_alert("❌ Compila tutti i campi dello strumento!")
+
+        deposito.aggiungi_strumento(tipo, marca, anno, prezzo)
+
         page.update()
 
 
