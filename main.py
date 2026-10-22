@@ -1,5 +1,6 @@
 import flet as ft
 from flet import app
+from flet.controls import alignment
 
 from alert import AlertManager
 from deposito_strumenti import DepositoStrumenti
@@ -49,7 +50,10 @@ def main(page: ft.Page):
     input_anno_txt = ft.TextField(label = "anno acquisto",
                                   keyboard_type=ft.KeyboardType.NUMBER,
                                   width = 400)
-    input_prezzo_txt = ft.TextField(value = deposito.strumenti[valore])
+    input_prezzo_txt = ft.TextField(label = "prezzo",
+                                    value = "0",
+                                    keyboard_type=ft.KeyboardType.NUMBER,
+                                    width=400)
 
     # --- FUNZIONI APP ---
     def aggiorna_lista_strumenti():
@@ -75,6 +79,13 @@ def main(page: ft.Page):
                     page.update()
                 except ValueError:
                     pass
+            riga_strumento = ft.Row(controls = [ft.Text(f"{stato},{strumento.marca},{strumento.tipo}",width = 300),
+                                                ft.IconButton(ft.icons.REMOVE, on_click = diminuisci_prezzo),
+                                                input_prezzo_txt,
+                                                ft.IconButton(ft.icons.ADD, on_click = aumenta_prezzo)],
+                                    alignment = ft.MainAxisAlignment.START
+                                    )
+
 
             lista_strumenti.controls.append(ft.Text(f"{stato} {strumento}"))
         page.update()
@@ -138,7 +149,7 @@ def main(page: ft.Page):
                 input_tipo_txt,
                 input_marca_txt,
                 input_anno_txt,
-                inpput_prezzo_txt,
+                input_prezzo_txt,
                 pulsante_aggiungi_strumento],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=10
