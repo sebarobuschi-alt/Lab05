@@ -1,5 +1,5 @@
 import flet as ft
-from flet import app
+from flet import app, TextField
 from flet.controls import alignment
 
 from alert import AlertManager
@@ -11,6 +11,7 @@ def main(page: ft.Page):
     page.title = "Lab05"
     page.horizontal_alignment = "center"
     page.theme_mode = ft.ThemeMode.DARK
+    page.scroll = ft.ScrollMode.AUTO
 
     # --- ALERT ---
     alert = AlertManager(page)
@@ -35,13 +36,11 @@ def main(page: ft.Page):
     # TextField per responsabile
     input_responsabile = ft.TextField(value=deposito.get_responsabile(), label="Responsabile")
 
-    # ListView per mostrare la lista di strumenti aggiornata
-    lista_strumenti = ft.ListView(expand=True, spacing=5, padding=10, auto_scroll=True)
-    myText = ft.Text(value = "Aggiungi Nuovo Strumento",
-        style=ft.TextThemeStyle.HEADLINE_MEDIUM,
-        weight=ft.FontWeight.BOLD)
+    myText = ft.Text(value="Aggiungi Nuovo Strumento",
+                     size = 28,
+                     weight = ft.FontWeight.BOLD
+                     )
 
-    # Tutti i TextField per le info necessarie per aggiungere un nuovo strumento (tipo, marca, anno, contatore posti)
 
     input_tipo_txt = ft.TextField(label= "tipo strumento" ,
                                   width=400  )
@@ -54,41 +53,31 @@ def main(page: ft.Page):
                                     value = "0",
                                     keyboard_type=ft.KeyboardType.NUMBER,
                                     width=400)
-
-    # --- FUNZIONI APP ---
-    def aggiorna_lista_strumenti():
-        lista_strumenti.controls.clear()
-        for strumento in deposito.strumenti_ordinati_per_marca():
-            stato = "✅" if strumento.disponibile else "⛔"
-            input_prezzo_txt = ft.TextField(value=str(strumento.valore),text_align=ft.TextAlign.CENTER, width=80)
-            def diminuisci_prezzo(e, s=strumento, t = input_prezzo_txt):
+    def diminuisci_prezzo(e):
                 try:
-                    prezzo = float(t.value)
-                    if prezzo > 0:
-                        s.valore = prezzo -1
-                        t.value = str(s.valore)
+                    valore_attuale = float(input_prezzo_txt.value)
+                    if valore_attuale > 0:
+                        input_prezzo_txt.value = str(valore_attuale - 1)
                         page.update()
                 except ValueError:
                     pass
+    def aumenta_prezzo(e):
+            try:
+                valore_attuale = float(input_prezzo_txt.value)
+                input_prezzo_txt.value = str(valore_attuale + 1)
+                page.update()
+                page.update()
+            except ValueError:
+                pass
+    contatore_prezzo = ft.Row(controls = [ft.IconButton(ft.Icons.REMOVE, on_click = diminuisci_prezzo),
+                                              input_prezzo_txt,
+                                              ft.IconButton(ft.Icons.ADD, on_click = aumenta_prezzo)],
+                                  alignment = ft.MainAxisAlignment.CENTER
+                                  )
 
-            def aumenta_prezzo(e,s=strumento,t = input_prezzo_txt):
-                try:
-                    prezzo = float(t.value)
-                    s.valore = prezzo + 1
-                    t.value = str(s.valore)
-                    page.update()
-                except ValueError:
-                    pass
-            riga_strumento = ft.Row(controls = [ft.Text(f"{stato},{strumento.marca},{strumento.tipo}",width = 300),
-                                                ft.IconButton(ft.icons.REMOVE, on_click = diminuisci_prezzo),
-                                                input_prezzo_txt,
-                                                ft.IconButton(ft.icons.ADD, on_click = aumenta_prezzo)],
-                                    alignment = ft.MainAxisAlignment.START
-                                    )
+    # --- FUNZIONI APP ---
 
 
-            lista_strumenti.controls.append(ft.Text(f"{stato} {strumento}"))
-        page.update()
 
     # --- HANDLERS APP ---
     def cambia_tema(e):
@@ -106,32 +95,52 @@ def main(page: ft.Page):
 
     # --- EVENTI ---
     toggle_cambia_tema = ft.Switch(label="Tema scuro", value=True, on_change=cambia_tema)
-    pulsante_conferma_responsabile = ft.ElevatedButton("Conferma", on_click=conferma_responsabile)
+    pulsante_conferma_responsabile = ft.Button("Conferma", on_click=conferma_responsabile)
 
     # Pulsanti per la gestione dell'inserimento di un nuovo strumento
-
     def aggiungi_nuovo_strumento(e):
         tipo = input_tipo_txt.value
         marca = input_marca_txt.value
         anno = input_anno_txt.value
         prezzo = input_prezzo_txt.value
+
         if tipo and marca and anno and prezzo:
-            input_tipo_txt.value = ""
-            input_marca_txt.value = ""
-            input_anno_txt.value = ""
-            input_prezzo_txt.value = 0
-            aggiorna_lista_strumenti()
+            try:
+
+                anno_int = int(anno)
+                prezzo_float = float(prezzo)
+
+                deposito.aggiungi_strumento(tipo, marca, anno_int, prezzo_float)
+
+
+                input_tipo_txt.value = ""
+                input_marca_txt.value = ""
+                input_anno_txt.value = ""
+                input_prezzo_txt.value = "0"
+
+                aggiorna_lista_strumenti()
+            except ValueError:
+                alert.show_alert("❌ Anno e prezzo devono essere valori numerici!")
         else:
             alert.show_alert("❌ Compila tutti i campi dello strumento!")
+        page.update()
 
-        deposito.aggiungi_strumento(tipo, marca, anno, prezzo)
+    pulsante_aggiungi_strumento = ft.Button("Salva Strumento", on_click=aggiungi_nuovo_strumento)
+
+    lista_strumenti = ft.ListView(expand=True, spacing=5, padding=10, auto_scroll=True)
+
+    def aggiorna_lista_strumenti():
+        lista_strumenti.controls.clear()
+        for strumento in deposito.strumenti_ordinati_per_marca():
+            stato = "✅" if strumento.disponibile else "⛔"
+
+            # Formattazione della riga della lista
+            riga = ft.Text(f"{stato} {strumento.codice}: {strumento.tipo} {strumento.marca} - {strumento.valore}€")
+            lista_strumenti.controls.append(riga)
 
         page.update()
 
-
-    pulsante_aggiungi_strumento = ft.ElevatedButton("Salva Strumento", on_click=aggiungi_nuovo_strumento)
-
-    # --- LAYOUT ---
+     #--- LAYOUT ---
     page.add(
         toggle_cambia_tema,
 
@@ -142,19 +151,22 @@ def main(page: ft.Page):
 
         # Sezione 2
         ft.Text("Modifica Informazioni", size=20),
-        ft.Row(spacing=200,
+        ft.Row(spacing=20,
                controls=[input_responsabile, pulsante_conferma_responsabile],
                alignment=ft.MainAxisAlignment.CENTER),
 
         # Sezione 3
+        ft.Divider(),
         ft.Column(
-            controls = [
+            controls=[
                 myText,
                 input_tipo_txt,
                 input_marca_txt,
                 input_anno_txt,
-                input_prezzo_txt,
-                pulsante_aggiungi_strumento],
+                ft.Text("Prezzo (Euro):"),
+                contatore_prezzo,
+                pulsante_aggiungi_strumento
+            ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=10
         ),
